@@ -60,3 +60,4 @@ O projeto utiliza **Databricks Asset Bundles** para versionar e gerenciar a conf
 - Alterações na configuração do Job, como tarefas, dependências e parâmetros, exigem um novo `deploy` para serem aplicadas ao recurso implantado.
 - Alterações feitas diretamente na interface do Databricks podem não estar refletidas no repositório e podem ser sobrescritas por um deploy posterior.
 - Os arquivos CSV de origem não são incluídos automaticamente no repositório e devem estar disponíveis no volume de landing.
+
