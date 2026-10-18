@@ -1,0 +1,34 @@
+
+resources:
+  jobs:
+    v_credit_medallion_pipeline:
+      name: v_credit_medallion_pipeline
+
+      tasks:
+        - task_key: Ingest_to_Bronze
+          notebook_task:
+            notebook_path: ../notebooks/ingest_to_bronze.ipynb
+            source: WORKSPACE
+
+        - task_key: Bronze_to_Silver
+          depends_on:
+            - task_key: Ingest_to_Bronze
+          notebook_task:
+            notebook_path: ../notebooks/bronze_to_silver.ipynb
+            source: WORKSPACE
+
+        - task_key: Silver_to_Gold
+          depends_on:
+            - task_key: Bronze_to_Silver
+          notebook_task:
+            notebook_path: ../notebooks/silver_to_gold.ipynb
+            source: WORKSPACE
+
+      queue:
+        enabled: true
+
+      parameters:
+        - name: ambiente
+          default: prod
+
+      performance_target: PERFORMANCE_OPTIMIZED

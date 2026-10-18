@@ -1,0 +1,10 @@
+
+bundle:
+  name: v_credit_medallion
+
+include:
+  - resources/*.yml
+
+targets:
+  dev:
+    mode: development
