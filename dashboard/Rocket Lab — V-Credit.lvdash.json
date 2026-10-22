@@ -1,0 +1,3515 @@
+{
+  "datasets": [
+    {
+      "name": "394765a7",
+      "displayName": "kpis_visao_geral",
+      "queryLines": [
+        "\n",
+        "SELECT\n",
+        "    COUNT(*) AS total_chamados,\n",
+        "    SUM(custo_total) AS custo_total,\n",
+        "    AVG(custo_total) AS custo_medio_com_custo,\n",
+        "\n",
+        "    AVG(CASE\n",
+        "        WHEN resolvido IS NOT NULL\n",
+        "        THEN CAST(resolvido AS INT)\n",
+        "    END) AS taxa_resolucao,\n",
+        "\n",
+        "    AVG(CASE\n",
+        "        WHEN nome_canal IN (\n",
+        "            'Atendimento Inicial',\n",
+        "            'Atendimento Especializado'\n",
+        "        )\n",
+        "        THEN CAST(abandonado AS INT)\n",
+        "    END) AS taxa_abandono_humano,\n",
+        "\n",
+        "    AVG(nota_media) AS satisfacao_media,\n",
+        "    COUNT(nota_media) AS chamados_com_nota\n",
+        "\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n"
+      ]
+    },
+    {
+      "name": "ca0d1481",
+      "displayName": "evolucao_mensal",
+      "queryLines": [
+        "\n",
+        "SELECT\n",
+        "    DATE_TRUNC('MONTH', data_abertura) AS mes,\n",
+        "    COUNT(*) AS total_chamados,\n",
+        "    SUM(custo_total) AS custo_total,\n",
+        "    AVG(custo_total) AS custo_medio\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n",
+        "GROUP BY DATE_TRUNC('MONTH', data_abertura)\n",
+        "ORDER BY mes\n"
+      ]
+    },
+    {
+      "name": "7a0f0eed",
+      "displayName": "desempenho_canais",
+      "queryLines": [
+        "\n",
+        "SELECT\n",
+        "    nome_canal,\n",
+        "    COUNT(*) AS total_chamados,\n",
+        "    SUM(custo_total) AS custo_total,\n",
+        "    AVG(custo_total) AS custo_medio,\n",
+        "\n",
+        "    COUNT(resolvido) AS chamados_com_resultado_avaliavel,\n",
+        "    SUM(CASE WHEN resolvido = TRUE THEN 1 ELSE 0 END)\n",
+        "        AS chamados_resolvidos,\n",
+        "    AVG(CAST(resolvido AS DOUBLE)) AS taxa_resolucao,\n",
+        "\n",
+        "    AVG(nota_media) AS satisfacao_media,\n",
+        "    COUNT(nota_media) AS chamados_com_nota\n",
+        "\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n",
+        "GROUP BY nome_canal\n",
+        "ORDER BY total_chamados DESC\n"
+      ]
+    },
+    {
+      "name": "17b69b6c",
+      "displayName": "operacoes_atendimento",
+      "queryLines": [
+        "\n",
+        "SELECT\n",
+        "    nome_canal,\n",
+        "    COUNT(*) AS total_chamados,\n",
+        "\n",
+        "    COUNT(tempo_espera_segundos) AS chamados_com_espera,\n",
+        "    AVG(tempo_espera_segundos) AS espera_media_segundos,\n",
+        "    PERCENTILE_APPROX(\n",
+        "        tempo_espera_segundos, 0.5\n",
+        "    ) AS espera_mediana_segundos,\n",
+        "\n",
+        "    COUNT(abandonado) AS chamados_com_abandono_avaliavel,\n",
+        "    SUM(CASE WHEN abandonado = TRUE THEN 1 ELSE 0 END)\n",
+        "        AS chamados_abandonados,\n",
+        "    AVG(CAST(abandonado AS DOUBLE)) AS taxa_abandono,\n",
+        "\n",
+        "    AVG(CAST(resolvido AS DOUBLE)) AS taxa_resolucao\n",
+        "\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n",
+        "GROUP BY nome_canal\n",
+        "ORDER BY total_chamados DESC\n"
+      ]
+    },
+    {
+      "name": "79a4396d",
+      "displayName": "analise_financeira",
+      "queryLines": [
+        "\n",
+        "SELECT\n",
+        "    DATE_TRUNC('MONTH', data_abertura) AS mes,\n",
+        "    nome_canal,\n",
+        "    COUNT(*) AS total_chamados,\n",
+        "    COUNT(custo_total) AS chamados_com_custo,\n",
+        "    SUM(custo_total) AS custo_total,\n",
+        "    AVG(custo_total) AS custo_medio,\n",
+        "    SUM(CASE WHEN custo_total IS NULL THEN 1 ELSE 0 END)\n",
+        "        AS chamados_sem_custo\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n",
+        "GROUP BY\n",
+        "    DATE_TRUNC('MONTH', data_abertura),\n",
+        "    nome_canal\n",
+        "ORDER BY\n",
+        "    mes,\n",
+        "    nome_canal\n"
+      ]
+    },
+    {
+      "name": "aea62684",
+      "displayName": "custos_mensais",
+      "queryLines": [
+        "SELECT\n",
+        "    DATE_TRUNC('MONTH', data_abertura) AS mes,\n",
+        "    SUM(custo_total) AS custo_total,\n",
+        "    AVG(custo_total) AS custo_medio\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n",
+        "GROUP BY DATE_TRUNC('MONTH', data_abertura)\n",
+        "ORDER BY mes"
+      ]
+    },
+    {
+      "name": "5d3bb4dd",
+      "displayName": "kpis_financeiros",
+      "queryLines": [
+        "\n",
+        "SELECT\n",
+        "    SUM(custo_total) AS custo_total,\n",
+        "    AVG(custo_total) AS custo_medio_por_chamado_com_custo,\n",
+        "    COUNT(*) AS total_chamados,\n",
+        "    COUNT(custo_total) AS chamados_com_custo,\n",
+        "    SUM(CASE\n",
+        "        WHEN custo_total IS NULL THEN 1\n",
+        "        ELSE 0\n",
+        "    END) AS chamados_sem_custo,\n",
+        "    COUNT(DISTINCT nome_canal) AS total_canais\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n"
+      ]
+    },
+    {
+      "name": "3b493915",
+      "displayName": "kpis_espera",
+      "queryLines": [
+        "\n",
+        "SELECT\n",
+        "    COUNT(tempo_espera_segundos) AS chamados_com_espera,\n",
+        "    AVG(tempo_espera_segundos) AS espera_media_segundos,\n",
+        "    PERCENTILE_APPROX(\n",
+        "        tempo_espera_segundos, 0.5\n",
+        "    ) AS espera_mediana_segundos\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n",
+        "WHERE nome_canal IN (\n",
+        "    'Atendimento Inicial',\n",
+        "    'Atendimento Especializado'\n",
+        ")\n"
+      ]
+    },
+    {
+      "name": "fcdcf769",
+      "displayName": "validacao_satisfacao",
+      "queryLines": [
+        "\n",
+        "SELECT\n",
+        "    COUNT(*) AS total_chamados,\n",
+        "    COUNT(nota_media) AS chamados_com_nota,\n",
+        "    SUM(COALESCE(qtd_notas_validas, 0))\n",
+        "        AS total_notas_validas,\n",
+        "    SUM(COALESCE(qtd_notas_preenchidas, 0))\n",
+        "        AS total_notas_preenchidas,\n",
+        "    AVG(nota_media) AS nota_media\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n"
+      ]
+    },
+    {
+      "name": "de432336",
+      "displayName": "custos_por_motivo",
+      "queryLines": [
+        "\n",
+        "SELECT\n",
+        "    nome_motivo,\n",
+        "    nome_canal,\n",
+        "    categoria,\n",
+        "    COUNT(*) AS total_chamados,\n",
+        "    COUNT(custo_total) AS chamados_com_custo,\n",
+        "    SUM(custo_total) AS custo_total,\n",
+        "    AVG(custo_total) AS custo_medio,\n",
+        "    COUNT(resolvido) AS chamados_com_resultado_avaliavel,\n",
+        "    AVG(\n",
+        "        CASE\n",
+        "            WHEN resolvido IS NOT NULL\n",
+        "            THEN CAST(resolvido AS DOUBLE)\n",
+        "        END\n",
+        "    ) AS taxa_resolucao\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n",
+        "GROUP BY\n",
+        "    nome_motivo,\n",
+        "    nome_canal,\n",
+        "    categoria\n",
+        "ORDER BY custo_total DESC\n"
+      ]
+    },
+    {
+      "name": "fcce71b6",
+      "displayName": "custos_resultados_grupo",
+      "queryLines": [
+        "\n",
+        "SELECT\n",
+        "    categoria,\n",
+        "    nome_canal,\n",
+        "    COUNT(*) AS total_chamados,\n",
+        "\n",
+        "    COUNT(custo_total) AS chamados_com_custo,\n",
+        "    SUM(custo_total) AS custo_total,\n",
+        "    AVG(custo_total) AS custo_medio,\n",
+        "\n",
+        "    COUNT(resolvido) AS chamados_com_resultado,\n",
+        "    AVG(\n",
+        "        CASE\n",
+        "            WHEN resolvido IS NOT NULL\n",
+        "            THEN CAST(resolvido AS DOUBLE)\n",
+        "        END\n",
+        "    ) AS taxa_resolucao,\n",
+        "\n",
+        "    COUNT(\n",
+        "        CASE\n",
+        "            WHEN nome_canal IN (\n",
+        "                'Atendimento Inicial',\n",
+        "                'Atendimento Especializado'\n",
+        "            )\n",
+        "            THEN abandonado\n",
+        "        END\n",
+        "    ) AS chamados_humanos_avaliaveis,\n",
+        "    AVG(\n",
+        "        CASE\n",
+        "            WHEN nome_canal IN (\n",
+        "                'Atendimento Inicial',\n",
+        "                'Atendimento Especializado'\n",
+        "            )\n",
+        "            THEN CAST(abandonado AS DOUBLE)\n",
+        "        END\n",
+        "    ) AS taxa_abandono,\n",
+        "\n",
+        "    COUNT(nota_media) AS chamados_com_avaliacao,\n",
+        "    AVG(nota_media) AS satisfacao_media\n",
+        "\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n",
+        "GROUP BY\n",
+        "    categoria,\n",
+        "    nome_canal\n",
+        "ORDER BY\n",
+        "    custo_total DESC\n"
+      ]
+    },
+    {
+      "name": "42f138a0",
+      "displayName": "matriz_custo_motivo",
+      "queryLines": [
+        "\n",
+        "SELECT\n",
+        "    DATE_TRUNC('MONTH', data_abertura) AS mes,\n",
+        "    nome_motivo,\n",
+        "    COUNT(*) AS total_chamados,\n",
+        "    SUM(custo_total) AS custo_total,\n",
+        "    AVG(custo_total) AS custo_medio\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n",
+        "GROUP BY\n",
+        "    DATE_TRUNC('MONTH', data_abertura),\n",
+        "    nome_motivo\n",
+        "ORDER BY\n",
+        "    mes,\n",
+        "    custo_total DESC\n"
+      ]
+    },
+    {
+      "name": "f06eced9",
+      "displayName": "abandono_por_canal",
+      "queryLines": [
+        "\n",
+        "SELECT\n",
+        "    nome_canal,\n",
+        "    COUNT(*) AS total_chamados,\n",
+        "    COUNT(abandonado) AS chamados_avaliaveis,\n",
+        "    SUM(\n",
+        "        CASE\n",
+        "            WHEN abandonado = TRUE THEN 1\n",
+        "            ELSE 0\n",
+        "        END\n",
+        "    ) AS chamados_abandonados,\n",
+        "    AVG(CAST(abandonado AS DOUBLE)) AS taxa_abandono,\n",
+        "    AVG(tempo_ate_abandono_segundos)\n",
+        "        AS tempo_medio_ate_abandono_segundos\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n",
+        "WHERE nome_canal IN (\n",
+        "    'Atendimento Inicial',\n",
+        "    'Atendimento Especializado'\n",
+        ")\n",
+        "GROUP BY nome_canal\n",
+        "ORDER BY nome_canal\n"
+      ]
+    },
+    {
+      "name": "87ff6b6b",
+      "displayName": "distribuicao_tempo_espera",
+      "queryLines": [
+        "\n",
+        "SELECT\n",
+        "    nome_canal,\n",
+        "    CASE\n",
+        "        WHEN abandonado = TRUE\n",
+        "            THEN 'Abandono'\n",
+        "        WHEN hora_inicio_atendimento IS NOT NULL\n",
+        "            THEN 'Atendido'\n",
+        "        ELSE 'Não classificado'\n",
+        "    END AS resultado_espera,\n",
+        "    faixa_espera,\n",
+        "    COUNT(*) AS total_chamados,\n",
+        "    AVG(\n",
+        "        CASE\n",
+        "            WHEN abandonado = TRUE\n",
+        "                THEN tempo_ate_abandono_segundos\n",
+        "            WHEN hora_inicio_atendimento IS NOT NULL\n",
+        "                THEN tempo_espera_segundos\n",
+        "        END\n",
+        "    ) AS tempo_medio_segundos\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n",
+        "WHERE nome_canal IN (\n",
+        "    'Atendimento Inicial',\n",
+        "    'Atendimento Especializado'\n",
+        ")\n",
+        "GROUP BY\n",
+        "    nome_canal,\n",
+        "    CASE\n",
+        "        WHEN abandonado = TRUE\n",
+        "            THEN 'Abandono'\n",
+        "        WHEN hora_inicio_atendimento IS NOT NULL\n",
+        "            THEN 'Atendido'\n",
+        "        ELSE 'Não classificado'\n",
+        "    END,\n",
+        "    faixa_espera\n",
+        "ORDER BY\n",
+        "    nome_canal,\n",
+        "    resultado_espera,\n",
+        "    faixa_espera\n"
+      ]
+    },
+    {
+      "name": "7141f6bd",
+      "displayName": "evolucao_operacional_mensal",
+      "queryLines": [
+        "\n",
+        "SELECT\n",
+        "    DATE_TRUNC('MONTH', data_abertura) AS mes,\n",
+        "    nome_canal,\n",
+        "    COUNT(*) AS total_chamados,\n",
+        "    AVG(tempo_atendimento_segundos)\n",
+        "        AS tempo_medio_atendimento_segundos,\n",
+        "    PERCENTILE_APPROX(\n",
+        "        tempo_atendimento_segundos, 0.5\n",
+        "    ) AS tempo_mediano_atendimento_segundos,\n",
+        "    COUNT(resolvido) AS chamados_com_resultado,\n",
+        "    AVG(CAST(resolvido AS DOUBLE)) AS taxa_resolucao\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n",
+        "WHERE nome_canal IN (\n",
+        "    'Atendimento Inicial',\n",
+        "    'Atendimento Especializado'\n",
+        ")\n",
+        "GROUP BY\n",
+        "    DATE_TRUNC('MONTH', data_abertura),\n",
+        "    nome_canal\n",
+        "ORDER BY\n",
+        "    mes,\n",
+        "    nome_canal\n"
+      ]
+    },
+    {
+      "name": "34bf7f42",
+      "displayName": "volume_dia_hora",
+      "queryLines": [
+        "\n",
+        "SELECT\n",
+        "    DAYOFWEEK(data_abertura) AS dia_semana_numero,\n",
+        "    DATE_FORMAT(data_abertura, 'EEEE') AS dia_semana,\n",
+        "    hora_abertura,\n",
+        "    COUNT(*) AS total_chamados\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n",
+        "GROUP BY\n",
+        "    DAYOFWEEK(data_abertura),\n",
+        "    DATE_FORMAT(data_abertura, 'EEEE'),\n",
+        "    hora_abertura\n",
+        "ORDER BY\n",
+        "    dia_semana_numero,\n",
+        "    hora_abertura\n"
+      ]
+    },
+    {
+      "name": "f801875e",
+      "displayName": "desempenho_nivel_atendimento",
+      "queryLines": [
+        "\n",
+        "SELECT\n",
+        "    nivel_atendimento,\n",
+        "    COUNT(*) AS total_chamados,\n",
+        "    COUNT(resolvido) AS chamados_com_resultado,\n",
+        "    AVG(CAST(resolvido AS DOUBLE)) AS taxa_resolucao,\n",
+        "    AVG(tempo_atendimento_segundos)\n",
+        "        AS tempo_medio_atendimento_segundos,\n",
+        "    PERCENTILE_APPROX(\n",
+        "        tempo_atendimento_segundos, 0.5\n",
+        "    ) AS tempo_mediano_atendimento_segundos,\n",
+        "    COUNT(nota_media) AS chamados_com_avaliacao,\n",
+        "    AVG(nota_media) AS satisfacao_media\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n",
+        "WHERE nome_canal IN (\n",
+        "    'Atendimento Inicial',\n",
+        "    'Atendimento Especializado'\n",
+        ")\n",
+        "AND nivel_atendimento IS NOT NULL\n",
+        "GROUP BY nivel_atendimento\n",
+        "ORDER BY nivel_atendimento\n"
+      ]
+    },
+    {
+      "name": "e0652328",
+      "displayName": "resolucao_canal_motivo",
+      "queryLines": [
+        "\n",
+        "SELECT\n",
+        "    nome_canal,\n",
+        "    nome_motivo,\n",
+        "    categoria,\n",
+        "    COUNT(*) AS total_chamados,\n",
+        "    COUNT(resolvido) AS chamados_com_resultado,\n",
+        "    SUM(\n",
+        "        CASE WHEN resolvido = TRUE THEN 1 ELSE 0 END\n",
+        "    ) AS chamados_resolvidos,\n",
+        "    AVG(\n",
+        "        CASE\n",
+        "            WHEN resolvido IS NOT NULL\n",
+        "            THEN CAST(resolvido AS DOUBLE)\n",
+        "        END\n",
+        "    ) AS taxa_resolucao\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n",
+        "GROUP BY\n",
+        "    nome_canal,\n",
+        "    nome_motivo,\n",
+        "    categoria\n",
+        "ORDER BY\n",
+        "    total_chamados DESC\n"
+      ]
+    },
+    {
+      "name": "8f7555bb",
+      "displayName": "resolucao_por_perfil",
+      "queryLines": [
+        "\n",
+        "SELECT\n",
+        "    nome_canal,\n",
+        "    faixa_idade,\n",
+        "    regiao,\n",
+        "    COUNT(*) AS total_chamados,\n",
+        "    COUNT(resolvido) AS chamados_com_resultado,\n",
+        "    AVG(\n",
+        "        CASE\n",
+        "            WHEN resolvido IS NOT NULL\n",
+        "            THEN CAST(resolvido AS DOUBLE)\n",
+        "        END\n",
+        "    ) AS taxa_resolucao,\n",
+        "    AVG(custo_total) AS custo_medio\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n",
+        "WHERE faixa_idade IS NOT NULL\n",
+        "   OR regiao IS NOT NULL\n",
+        "GROUP BY\n",
+        "    nome_canal,\n",
+        "    faixa_idade,\n",
+        "    regiao\n",
+        "ORDER BY\n",
+        "    total_chamados DESC\n"
+      ]
+    },
+    {
+      "name": "1b80121b",
+      "displayName": "recontatos_por_motivo",
+      "queryLines": [
+        "\n",
+        "SELECT\n",
+        "    nome_motivo,\n",
+        "    nome_canal,\n",
+        "    COUNT(*) AS total_chamados,\n",
+        "    SUM(\n",
+        "        CASE\n",
+        "            WHEN recontato = TRUE\n",
+        "             AND segundos_desde_contato_anterior <= 3600\n",
+        "            THEN 1 ELSE 0\n",
+        "        END\n",
+        "    ) AS contatos_repetidos_ate_1h,\n",
+        "    SUM(\n",
+        "        CASE\n",
+        "            WHEN recontato = TRUE\n",
+        "             AND segundos_desde_contato_anterior > 3600\n",
+        "             AND segundos_desde_contato_anterior <= 604800\n",
+        "            THEN 1 ELSE 0\n",
+        "        END\n",
+        "    ) AS contatos_repetidos_mais_1h_ate_7d,\n",
+        "    AVG(\n",
+        "        CASE\n",
+        "            WHEN recontato IS NOT NULL\n",
+        "            THEN CAST(recontato AS DOUBLE)\n",
+        "        END\n",
+        "    ) AS taxa_recontato\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n",
+        "GROUP BY\n",
+        "    nome_motivo,\n",
+        "    nome_canal\n",
+        "ORDER BY\n",
+        "    contatos_repetidos_mais_1h_ate_7d DESC\n"
+      ]
+    },
+    {
+      "name": "fe6e2655",
+      "displayName": "transicoes_canal",
+      "queryLines": [
+        "\n",
+        "SELECT\n",
+        "    nome_canal AS canal_atual,\n",
+        "    transicao_canal_recontato AS transicao_observada,\n",
+        "    COUNT(*) AS total_chamados,\n",
+        "    COUNT(recontato) AS chamados_com_recontato_avaliavel,\n",
+        "    SUM(\n",
+        "        CASE WHEN recontato = TRUE THEN 1 ELSE 0 END\n",
+        "    ) AS chamados_com_recontato,\n",
+        "    AVG(\n",
+        "        CASE\n",
+        "            WHEN recontato IS NOT NULL\n",
+        "            THEN CAST(recontato AS DOUBLE)\n",
+        "        END\n",
+        "    ) AS taxa_recontato\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n",
+        "WHERE transicao_canal_recontato IS NOT NULL\n",
+        "GROUP BY\n",
+        "    nome_canal,\n",
+        "    transicao_canal_recontato\n",
+        "ORDER BY total_chamados DESC\n"
+      ]
+    },
+    {
+      "name": "6d7a4075",
+      "displayName": "satisfacao_mensal",
+      "queryLines": [
+        "\n",
+        "SELECT\n",
+        "    DATE_TRUNC('MONTH', data_abertura) AS mes,\n",
+        "    COUNT(*) AS total_chamados,\n",
+        "    COUNT(nota_media) AS avaliacoes_validas,\n",
+        "    AVG(nota_media) AS satisfacao_media\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n",
+        "GROUP BY DATE_TRUNC('MONTH', data_abertura)\n",
+        "ORDER BY mes\n"
+      ]
+    },
+    {
+      "name": "136a2cac",
+      "displayName": "satisfacao_por_canal",
+      "queryLines": [
+        "\n",
+        "SELECT\n",
+        "    nome_canal,\n",
+        "    COUNT(*) AS total_chamados,\n",
+        "    COUNT(nota_media) AS avaliacoes_validas,\n",
+        "    AVG(nota_media) AS satisfacao_media\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n",
+        "GROUP BY nome_canal\n",
+        "ORDER BY satisfacao_media DESC\n"
+      ]
+    },
+    {
+      "name": "d650e362",
+      "displayName": "satisfacao_por_resultado",
+      "queryLines": [
+        "\n",
+        "SELECT\n",
+        "    CASE\n",
+        "        WHEN abandonado = TRUE\n",
+        "            THEN 'Abandonado'\n",
+        "        WHEN resolvido = TRUE\n",
+        "            THEN 'Resolvido'\n",
+        "        WHEN resolvido = FALSE\n",
+        "            THEN 'Atendido, não resolvido'\n",
+        "        ELSE 'Resultado não avaliável'\n",
+        "    END AS resultado_chamado,\n",
+        "    COUNT(*) AS total_chamados,\n",
+        "    COUNT(nota_media) AS avaliacoes_validas,\n",
+        "    AVG(nota_media) AS satisfacao_media\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n",
+        "GROUP BY\n",
+        "    CASE\n",
+        "        WHEN abandonado = TRUE\n",
+        "            THEN 'Abandonado'\n",
+        "        WHEN resolvido = TRUE\n",
+        "            THEN 'Resolvido'\n",
+        "        WHEN resolvido = FALSE\n",
+        "            THEN 'Atendido, não resolvido'\n",
+        "        ELSE 'Resultado não avaliável'\n",
+        "    END\n",
+        "ORDER BY total_chamados DESC\n"
+      ]
+    },
+    {
+      "name": "962485c6",
+      "displayName": "experiencia_espera_recontato",
+      "queryLines": [
+        "\n",
+        "SELECT\n",
+        "    CASE\n",
+        "        WHEN nome_canal IN (\n",
+        "            'Atendimento Inicial',\n",
+        "            'Atendimento Especializado'\n",
+        "        )\n",
+        "        THEN 'Canal humano'\n",
+        "        ELSE 'Autosserviço'\n",
+        "    END AS grupo_canal,\n",
+        "\n",
+        "    CASE\n",
+        "        WHEN tempo_espera_segundos IS NULL\n",
+        "            THEN 'Sem tempo de espera registrado'\n",
+        "        WHEN tempo_espera_segundos < 300\n",
+        "            THEN 'Até 5 minutos'\n",
+        "        WHEN tempo_espera_segundos < 900\n",
+        "            THEN '5 a 15 minutos'\n",
+        "        ELSE '15 minutos ou mais'\n",
+        "    END AS faixa_espera,\n",
+        "\n",
+        "    COUNT(*) AS total_chamados,\n",
+        "    COUNT(nota_media) AS avaliacoes_validas,\n",
+        "    AVG(nota_media) AS satisfacao_media,\n",
+        "\n",
+        "    SUM(\n",
+        "        CASE WHEN recontato = TRUE THEN 1 ELSE 0 END\n",
+        "    ) AS chamados_com_recontato,\n",
+        "\n",
+        "    COUNT(recontato) AS chamados_com_recontato_avaliavel,\n",
+        "    AVG(CAST(recontato AS DOUBLE)) AS taxa_recontato\n",
+        "\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n",
+        "GROUP BY\n",
+        "    CASE\n",
+        "        WHEN nome_canal IN (\n",
+        "            'Atendimento Inicial',\n",
+        "            'Atendimento Especializado'\n",
+        "        )\n",
+        "        THEN 'Canal humano'\n",
+        "        ELSE 'Autosserviço'\n",
+        "    END,\n",
+        "    CASE\n",
+        "        WHEN tempo_espera_segundos IS NULL\n",
+        "            THEN 'Sem tempo de espera registrado'\n",
+        "        WHEN tempo_espera_segundos < 300\n",
+        "            THEN 'Até 5 minutos'\n",
+        "        WHEN tempo_espera_segundos < 900\n",
+        "            THEN '5 a 15 minutos'\n",
+        "        ELSE '15 minutos ou mais'\n",
+        "    END\n",
+        "ORDER BY grupo_canal, faixa_espera\n"
+      ]
+    },
+    {
+      "name": "1e354d40",
+      "displayName": "indicadores_qualidade",
+      "queryLines": [
+        "\n",
+        "SELECT\n",
+        "    'Custo ausente' AS indicador,\n",
+        "    COUNT(*) AS total_chamados,\n",
+        "    SUM(\n",
+        "        CASE WHEN custo_total IS NULL THEN 1 ELSE 0 END\n",
+        "    ) AS chamados_afetados\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n",
+        "\n",
+        "UNION ALL\n",
+        "\n",
+        "SELECT\n",
+        "    'Resultado não avaliável',\n",
+        "    COUNT(*),\n",
+        "    SUM(\n",
+        "        CASE WHEN resolvido IS NULL THEN 1 ELSE 0 END\n",
+        "    )\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n",
+        "\n",
+        "UNION ALL\n",
+        "\n",
+        "SELECT\n",
+        "    'Faixa etária ausente',\n",
+        "    COUNT(*),\n",
+        "    SUM(\n",
+        "        CASE WHEN faixa_idade IS NULL THEN 1 ELSE 0 END\n",
+        "    )\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n",
+        "\n",
+        "UNION ALL\n",
+        "\n",
+        "SELECT\n",
+        "    'Sem pesquisa registrada',\n",
+        "    COUNT(*),\n",
+        "    SUM(\n",
+        "        CASE\n",
+        "            WHEN COALESCE(qtd_pesquisas, 0) = 0 THEN 1\n",
+        "            ELSE 0\n",
+        "        END\n",
+        "    )\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n",
+        "\n",
+        "UNION ALL\n",
+        "\n",
+        "SELECT\n",
+        "    'Pesquisa sem nota válida',\n",
+        "    COUNT(*),\n",
+        "    SUM(\n",
+        "        CASE\n",
+        "            WHEN COALESCE(qtd_pesquisas, 0) > 0\n",
+        "             AND COALESCE(qtd_notas_validas, 0) = 0\n",
+        "            THEN 1\n",
+        "            ELSE 0\n",
+        "        END\n",
+        "    )\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n",
+        "\n",
+        "UNION ALL\n",
+        "\n",
+        "SELECT\n",
+        "    'Atendimento humano sem atendente',\n",
+        "    COUNT(*),\n",
+        "    SUM(\n",
+        "        CASE\n",
+        "            WHEN nome_canal IN (\n",
+        "                'Atendimento Inicial',\n",
+        "                'Atendimento Especializado'\n",
+        "            )\n",
+        "            AND id_atendente IS NULL\n",
+        "            THEN 1\n",
+        "            ELSE 0\n",
+        "        END\n",
+        "    )\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n"
+      ]
+    },
+    {
+      "name": "1b680e92",
+      "displayName": "validacao_integridade_gold",
+      "queryLines": [
+        "\n",
+        "SELECT\n",
+        "    COUNT(*) AS total_registros,\n",
+        "    COUNT(DISTINCT id_chamado) AS chamados_distintos,\n",
+        "\n",
+        "    SUM(\n",
+        "        CASE WHEN id_chamado IS NULL THEN 1 ELSE 0 END\n",
+        "    ) AS registros_sem_id_chamado,\n",
+        "\n",
+        "    SUM(\n",
+        "        CASE WHEN id_cliente IS NULL THEN 1 ELSE 0 END\n",
+        "    ) AS registros_sem_cliente,\n",
+        "\n",
+        "    SUM(\n",
+        "        CASE WHEN id_canal IS NULL THEN 1 ELSE 0 END\n",
+        "    ) AS registros_sem_canal,\n",
+        "\n",
+        "    SUM(\n",
+        "        CASE WHEN id_motivo IS NULL THEN 1 ELSE 0 END\n",
+        "    ) AS registros_sem_motivo,\n",
+        "\n",
+        "    SUM(\n",
+        "        CASE\n",
+        "            WHEN nome_canal IN (\n",
+        "                'Atendimento Inicial',\n",
+        "                'Atendimento Especializado'\n",
+        "            )\n",
+        "            AND id_atendente IS NULL\n",
+        "            THEN 1 ELSE 0\n",
+        "        END\n",
+        "    ) AS atendimentos_humanos_sem_atendente,\n",
+        "\n",
+        "    SUM(\n",
+        "        CASE WHEN custo_total < 0 THEN 1 ELSE 0 END\n",
+        "    ) AS custos_negativos_na_gold,\n",
+        "\n",
+        "    SUM(\n",
+        "        CASE WHEN nota_media < 0 OR nota_media > 5\n",
+        "            THEN 1 ELSE 0\n",
+        "        END\n",
+        "    ) AS notas_fora_da_escala\n",
+        "\n",
+        "FROM v_credit_medallion.gold.fato_chamados\n"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "dca2b46e",
+      "displayName": "Visão Geral",
+      "layout": [
+        {
+          "widget": {
+            "name": "ac944bdb",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "394765a7",
+                  "fields": [
+                    {
+                      "name": "sum(total_chamados)",
+                      "expression": "SUM(`total_chamados`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Total de chamados",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(total_chamados)",
+                  "format": {
+                    "abbreviation": "none",
+                    "type": "number-plain"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 5,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "custo-total",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "394765a7",
+                  "fields": [
+                    {
+                      "name": "sum(custo_total)",
+                      "expression": "SUM(`custo_total`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Custo total",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(custo_total)",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "BRL",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 4,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "74badd9a",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "394765a7",
+                  "fields": [
+                    {
+                      "name": "sum(custo_medio_com_custo)",
+                      "expression": "SUM(`custo_medio_com_custo`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Custo médio por chamado com custo",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(custo_medio_com_custo)",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "BRL",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 5,
+            "y": 0,
+            "width": 6,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "taxa-resolucao-registrada",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "394765a7",
+                  "fields": [
+                    {
+                      "name": "approx_percentile(taxa_resolucao, percentage=0_5)",
+                      "expression": "APPROX_PERCENTILE(`taxa_resolucao`, 0.5)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Taxa de resolução registrada",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "approx_percentile(taxa_resolucao, percentage=0_5)",
+                  "format": {
+                    "type": "number-percent",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 4,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "abandono-canais-humanos",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "394765a7",
+                  "fields": [
+                    {
+                      "name": "approx_percentile(taxa_abandono_humano, percentage=0_5)",
+                      "expression": "APPROX_PERCENTILE(`taxa_abandono_humano`, 0.5)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Abandono nos canais humanos",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "approx_percentile(taxa_abandono_humano, percentage=0_5)",
+                  "format": {
+                    "type": "number-percent",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 10,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "satisfacao-media",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "394765a7",
+                  "fields": [
+                    {
+                      "name": "satisfacao_media",
+                      "expression": "`satisfacao_media`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Satisfação Média",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "satisfacao_media",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    },
+                    "hideGroupSeparator": false
+                  },
+                  "formatTemplate": "{{ @formatted }} / 5"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 10,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "evolucao-mensal-de-chamados",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ca0d1481",
+                  "fields": [
+                    {
+                      "name": "monthly(mes)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `mes`)"
+                    },
+                    {
+                      "name": "sum(total_chamados)",
+                      "expression": "SUM(`total_chamados`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Evolução mensal de chamados",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "monthly(mes)",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(total_chamados)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 16,
+            "width": 12,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "custo-total-por-mes",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ca0d1481",
+                  "fields": [
+                    {
+                      "name": "monthly(mes)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `mes`)"
+                    },
+                    {
+                      "name": "sum(custo_total)",
+                      "expression": "SUM(`custo_total`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Custo total por mês",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "monthly(mes)",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(custo_total)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 22,
+            "width": 12,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "volume-chamados-canal",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "7a0f0eed",
+                  "fields": [
+                    {
+                      "name": "nome_canal",
+                      "expression": "`nome_canal`"
+                    },
+                    {
+                      "name": "sum(total_chamados)",
+                      "expression": "SUM(`total_chamados`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Volume de chamados por canal",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "nome_canal",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(total_chamados)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 28,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "custo-total-por-canal",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "7a0f0eed",
+                  "fields": [
+                    {
+                      "name": "nome_canal",
+                      "expression": "`nome_canal`"
+                    },
+                    {
+                      "name": "sum(custo_total)",
+                      "expression": "SUM(`custo_total`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Custo total por canal",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "nome_canal",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(custo_total)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 28,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "taxa-resolucao-por-canal",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "7a0f0eed",
+                  "fields": [
+                    {
+                      "name": "nome_canal",
+                      "expression": "`nome_canal`"
+                    },
+                    {
+                      "name": "avg(taxa_resolucao)",
+                      "expression": "AVG(`taxa_resolucao`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Taxa de resolução registrada por canal",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "nome_canal",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "avg(taxa_resolucao)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 34,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "tempo-medio-espera",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "3b493915",
+                  "fields": [
+                    {
+                      "name": "sum(espera_media_segundos)",
+                      "expression": "SUM(`espera_media_segundos`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Tempo medio de espera",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(espera_media_segundos)"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 40,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "10def879",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "3b493915",
+                  "fields": [
+                    {
+                      "name": "sum(espera_mediana_segundos)",
+                      "expression": "SUM(`espera_mediana_segundos`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Tempo mediano de espera",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(espera_mediana_segundos)"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 40,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "9bf3fa51",
+            "multilineTextboxSpec": {
+              "lines": [
+                "- Demanda crescente: o volume mensal de chamados aumentou de 4.368 em janeiro de 2025 para 9.596 em julho de 2026.\n",
+                "- Concentração de custos: o Atendimento Especializado concentra a maior parcela do custo total observado.\n",
+                "- Resolução registrada: aproximadamente 50,9% dos chamados com resultado avaliável foram registrados como resolvidos.\n",
+                "- Espera no atendimento humano: a espera mediana registrada foi de 386 segundos, ou 6 min e 26 s.\n",
+                "- Satisfação: a nota média foi de 3,98/5, calculada a partir de 73.383 chamados com nota."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 46,
+            "width": 12,
+            "height": 3
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "7f1892da",
+      "displayName": "Financeiro",
+      "layout": [
+        {
+          "widget": {
+            "name": "evolucao-mensal-do-custo-total",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "aea62684",
+                  "fields": [
+                    {
+                      "name": "monthly(mes)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `mes`)"
+                    },
+                    {
+                      "name": "sum(custo_total)",
+                      "expression": "SUM(`custo_total`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Evolução mensal do custo total",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "monthly(mes)",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(custo_total)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "custo-total-por-canal",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "7a0f0eed",
+                  "fields": [
+                    {
+                      "name": "nome_canal",
+                      "expression": "`nome_canal`"
+                    },
+                    {
+                      "name": "sum(custo_total)",
+                      "expression": "SUM(`custo_total`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Custo total por canal",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "nome_canal",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(custo_total)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 0,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "custo-medio-por-chamado-por-canal",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "7a0f0eed",
+                  "fields": [
+                    {
+                      "name": "nome_canal",
+                      "expression": "`nome_canal`"
+                    },
+                    {
+                      "name": "sum(custo_medio)",
+                      "expression": "SUM(`custo_medio`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Custo medio por chamado por canal",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "nome_canal",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(custo_medio)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 6,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "chamados-sem-custo-registrado-por-canal",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "79a4396d",
+                  "fields": [
+                    {
+                      "name": "nome_canal",
+                      "expression": "`nome_canal`"
+                    },
+                    {
+                      "name": "sum(chamados_sem_custo)",
+                      "expression": "SUM(`chamados_sem_custo`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Chamados sem custo registrado por canal",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "nome_canal",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(chamados_sem_custo)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 6,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "custo-total-registrado",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "5d3bb4dd",
+                  "fields": [
+                    {
+                      "name": "sum(custo_total)",
+                      "expression": "SUM(`custo_total`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Custo total registrado\n<p>&nbsp;</p>\n",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(custo_total)",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "BRL",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 12,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "3007753b",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "5d3bb4dd",
+                  "fields": [
+                    {
+                      "name": "sum(custo_medio_por_chamado_com_custo)",
+                      "expression": "SUM(`custo_medio_por_chamado_com_custo`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Custo medio por chamado com custo",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(custo_medio_por_chamado_com_custo)",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "BRL",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 12,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "84f0bd1e",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "5d3bb4dd",
+                  "fields": [
+                    {
+                      "name": "sum(chamados_sem_custo)",
+                      "expression": "SUM(`chamados_sem_custo`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Chamados sem custo registrado",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(chamados_sem_custo)"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 18,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "6d1a4af6",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "5d3bb4dd",
+                  "fields": [
+                    {
+                      "name": "sum(chamados_com_custo)",
+                      "expression": "SUM(`chamados_com_custo`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Chamados com custo registrado",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(chamados_com_custo)"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 18,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "custo-total-por-motivo-e-canal",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "de432336",
+                  "fields": [
+                    {
+                      "name": "sum(custo_total)",
+                      "expression": "SUM(`custo_total`)"
+                    },
+                    {
+                      "name": "nome_canal",
+                      "expression": "`nome_canal`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Custo total por motivo e canal",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "sum(custo_total)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "fieldName": "nome_canal",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 1,
+            "y": 24,
+            "width": 10,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "custo-medio-vs-taxa-resolucao-por-motivo",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "de432336",
+                  "fields": [
+                    {
+                      "name": "nome_canal",
+                      "expression": "`nome_canal`"
+                    },
+                    {
+                      "name": "nome_motivo",
+                      "expression": "`nome_motivo`"
+                    },
+                    {
+                      "name": "custo_medio",
+                      "expression": "`custo_medio`"
+                    },
+                    {
+                      "name": "taxa_resolucao",
+                      "expression": "`taxa_resolucao`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Custo emdio versus txa de resolução por motivo",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "scatter",
+              "encodings": {
+                "x": {
+                  "fieldName": "custo_medio",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "fieldName": "taxa_resolucao",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "nome_canal",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "shape": {
+                  "fieldName": "nome_motivo",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 30,
+            "width": 12,
+            "height": 8
+          }
+        },
+        {
+          "widget": {
+            "name": "custo-total-resultados-categoria",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "fcce71b6",
+                  "fields": [
+                    {
+                      "name": "sum(custo_total)",
+                      "expression": "SUM(`custo_total`)"
+                    },
+                    {
+                      "name": "categoria",
+                      "expression": "`categoria`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Custo total e resultados por categoria",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "sum(custo_total)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "fieldName": "categoria",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 38,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "evolucao-custo-mensal-por-motivo",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "42f138a0",
+                  "fields": [
+                    {
+                      "name": "sum(custo_total)",
+                      "expression": "SUM(`custo_total`)"
+                    },
+                    {
+                      "name": "monthly(mes)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `mes`)"
+                    },
+                    {
+                      "name": "nome_motivo",
+                      "expression": "`nome_motivo`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Evolução mensal do custo por motivo",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "heatmap",
+              "encodings": {
+                "x": {
+                  "fieldName": "monthly(mes)",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "nome_motivo",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "color": {
+                  "fieldName": "sum(custo_total)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 44,
+            "width": 12,
+            "height": 8
+          }
+        },
+        {
+          "widget": {
+            "name": "custo-medio-mensal-por-chamado",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ca0d1481",
+                  "fields": [
+                    {
+                      "name": "monthly(mes)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `mes`)"
+                    },
+                    {
+                      "name": "sum(custo_medio)",
+                      "expression": "SUM(`custo_medio`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Custo medio mensal por chamado",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "monthly(mes)",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(custo_medio)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 53,
+            "width": 6,
+            "height": 6
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "bce8d4b9",
+      "displayName": "Operações e Customer Success",
+      "layout": [
+        {
+          "widget": {
+            "name": "taxa-abandono-canal-humano",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f06eced9",
+                  "fields": [
+                    {
+                      "name": "nome_canal",
+                      "expression": "`nome_canal`"
+                    },
+                    {
+                      "name": "sum(taxa_abandono)",
+                      "expression": "SUM(`taxa_abandono`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Taxa de abandono por canal humano\n<p>&nbsp;</p>\n",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "nome_canal",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(taxa_abandono)",
+                  "format": {
+                    "type": "number-percent",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  },
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "distribuicao-tempo-atendimento-abandono",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "87ff6b6b",
+                  "fields": [
+                    {
+                      "name": "resultado_espera",
+                      "expression": "`resultado_espera`"
+                    },
+                    {
+                      "name": "faixa_espera",
+                      "expression": "`faixa_espera`"
+                    },
+                    {
+                      "name": "sum(total_chamados)",
+                      "expression": "SUM(`total_chamados`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`nome_canal` IN (`nome_canal`) OR TRUE"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Distribuição do tempo até atendimento ou abandono",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "faixa_espera",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(total_chamados)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "resultado_espera",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 0,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "evolucao-mensal-taxa-resolucao",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "7141f6bd",
+                  "fields": [
+                    {
+                      "name": "nome_canal",
+                      "expression": "`nome_canal`"
+                    },
+                    {
+                      "name": "monthly(mes)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `mes`)"
+                    },
+                    {
+                      "name": "sum(taxa_resolucao)",
+                      "expression": "SUM(`taxa_resolucao`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Evolução mensal da taxa de resolução",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "monthly(mes)",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(taxa_resolucao)",
+                  "format": {
+                    "type": "number-percent",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  },
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "nome_canal",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 6,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "evolucao-mensal-tempo-mediano-atendimento",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "7141f6bd",
+                  "fields": [
+                    {
+                      "name": "nome_canal",
+                      "expression": "`nome_canal`"
+                    },
+                    {
+                      "name": "monthly(mes)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `mes`)"
+                    },
+                    {
+                      "name": "sum(tempo_mediano_atendimento_segundos)",
+                      "expression": "SUM(`tempo_mediano_atendimento_segundos`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Evolução mensal do tempo mediano de atendimento",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "monthly(mes)",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(tempo_mediano_atendimento_segundos)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "nome_canal",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 12,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "volume-chamados-dia-semana-hora",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "34bf7f42",
+                  "fields": [
+                    {
+                      "name": "sum(total_chamados)",
+                      "expression": "SUM(`total_chamados`)"
+                    },
+                    {
+                      "name": "hora_abertura",
+                      "expression": "`hora_abertura`"
+                    },
+                    {
+                      "name": "dia_semana",
+                      "expression": "`dia_semana`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Volume de chamados por dia da semana e hora",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "heatmap",
+              "encodings": {
+                "x": {
+                  "fieldName": "hora_abertura",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "fieldName": "dia_semana",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "color": {
+                  "fieldName": "sum(total_chamados)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 18,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "taxa-resolucao-nivel-atendimento",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f801875e",
+                  "fields": [
+                    {
+                      "name": "nivel_atendimento",
+                      "expression": "`nivel_atendimento`"
+                    },
+                    {
+                      "name": "taxa_resolucao",
+                      "expression": "`taxa_resolucao`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Taxa de resolução por nivel de atendimento",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "nivel_atendimento",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "fieldName": "taxa_resolucao",
+                  "format": {
+                    "type": "number-percent",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  },
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 1,
+            "y": 24,
+            "width": 9,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "275e7b2f",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f801875e",
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "data": {
+                "queryName": "main_query"
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {}
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 30,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "c4caecfb",
+      "displayName": "Tecnologia e autosserviço",
+      "layout": [
+        {
+          "widget": {
+            "name": "taxa-resolucao-canal-motivo",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "e0652328",
+                  "fields": [
+                    {
+                      "name": "nome_canal",
+                      "expression": "`nome_canal`"
+                    },
+                    {
+                      "name": "sum(taxa_resolucao)",
+                      "expression": "SUM(`taxa_resolucao`)"
+                    },
+                    {
+                      "name": "nome_motivo",
+                      "expression": "`nome_motivo`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Taxa de resolução por canal e motivo\n<p>&nbsp;</p>\n",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "sum(taxa_resolucao)",
+                  "format": {
+                    "type": "number-percent",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  },
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "fieldName": "nome_motivo",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "color": {
+                  "fieldName": "nome_canal",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 12,
+            "height": 8
+          }
+        },
+        {
+          "widget": {
+            "name": "taxa-resolucao-faixa-etaria-canal",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "8f7555bb",
+                  "fields": [
+                    {
+                      "name": "nome_canal",
+                      "expression": "`nome_canal`"
+                    },
+                    {
+                      "name": "faixa_idade",
+                      "expression": "`faixa_idade`"
+                    },
+                    {
+                      "name": "sum(taxa_resolucao)",
+                      "expression": "SUM(`taxa_resolucao`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Taxa de resolução por faixa etária e canal",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "faixa_idade",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(taxa_resolucao)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "nome_canal",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 8,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "contatos-repetidos-motivo-canal",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "1b80121b",
+                  "fields": [
+                    {
+                      "name": "nome_motivo",
+                      "expression": "`nome_motivo`"
+                    },
+                    {
+                      "name": "sum(contatos_repetidos_mais_1h_ate_7d)",
+                      "expression": "SUM(`contatos_repetidos_mais_1h_ate_7d`)"
+                    },
+                    {
+                      "name": "sum(contatos_repetidos_ate_1h)",
+                      "expression": "SUM(`contatos_repetidos_ate_1h`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Contatos repetidos por motivo e canal",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "nome_motivo",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "fields": [
+                    {
+                      "fieldName": "sum(contatos_repetidos_mais_1h_ate_7d)"
+                    },
+                    {
+                      "fieldName": "sum(contatos_repetidos_ate_1h)"
+                    }
+                  ]
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 14,
+            "width": 12,
+            "height": 9
+          }
+        },
+        {
+          "widget": {
+            "name": "transicoes-canal-observadas-contatos-repetidos",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "fe6e2655",
+                  "fields": [
+                    {
+                      "name": "canal_atual",
+                      "expression": "`canal_atual`"
+                    },
+                    {
+                      "name": "transicao_observada",
+                      "expression": "`transicao_observada`"
+                    },
+                    {
+                      "name": "sum(total_chamados)",
+                      "expression": "SUM(`total_chamados`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Transições de canal observadas em contatos repetidos",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "transicao_observada",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(total_chamados)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "canal_atual",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 24,
+            "width": 6,
+            "height": 6
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "f726f143",
+      "displayName": "Experiência, qualidade e recomendações",
+      "layout": [
+        {
+          "widget": {
+            "name": "evolucao-mensal-satisfacao",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "6d7a4075",
+                  "fields": [
+                    {
+                      "name": "monthly(mes)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `mes`)"
+                    },
+                    {
+                      "name": "satisfacao_media",
+                      "expression": "`satisfacao_media`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Evolução mensal da satisfação",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "monthly(mes)",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "satisfacao_media",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 0,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "quantidade-avaliacoes-validas-mes",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "6d7a4075",
+                  "fields": [
+                    {
+                      "name": "monthly(mes)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `mes`)"
+                    },
+                    {
+                      "name": "sum(avaliacoes_validas)",
+                      "expression": "SUM(`avaliacoes_validas`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Quantidade de avaliações validas por mes\n<p>&nbsp;</p>\n",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "monthly(mes)",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(avaliacoes_validas)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 5,
+            "y": 6,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "satisfacao-media-canal",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "136a2cac",
+                  "fields": [
+                    {
+                      "name": "sum(satisfacao_media)",
+                      "expression": "SUM(`satisfacao_media`)"
+                    },
+                    {
+                      "name": "nome_canal",
+                      "expression": "`nome_canal`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Satisfação media por canal",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "sum(satisfacao_media)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "fieldName": "nome_canal",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 1,
+            "y": 12,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "satisfacao-media-resultado-chamado",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "d650e362",
+                  "fields": [
+                    {
+                      "name": "resultado_chamado",
+                      "expression": "`resultado_chamado`"
+                    },
+                    {
+                      "name": "sum(satisfacao_media)",
+                      "expression": "SUM(`satisfacao_media`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Satisfaçao media por resultado do chamado",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "resultado_chamado",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(satisfacao_media)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 18,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "satisfacao-media-faixa-espera",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "962485c6",
+                  "fields": [
+                    {
+                      "name": "grupo_canal",
+                      "expression": "`grupo_canal`"
+                    },
+                    {
+                      "name": "faixa_espera",
+                      "expression": "`faixa_espera`"
+                    },
+                    {
+                      "name": "sum(satisfacao_media)",
+                      "expression": "SUM(`satisfacao_media`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Satisfação media por faixa de espera",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "faixa_espera",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(satisfacao_media)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "grupo_canal",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 24,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "indicadores-qualidade-dados",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "1e354d40",
+                  "fields": [
+                    {
+                      "name": "indicador",
+                      "expression": "`indicador`"
+                    },
+                    {
+                      "name": "total_chamados",
+                      "expression": "`total_chamados`"
+                    },
+                    {
+                      "name": "chamados_afetados",
+                      "expression": "`chamados_afetados`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Indicadores de qualidade dos dados",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "indicador"
+                  },
+                  {
+                    "fieldName": "total_chamados"
+                  },
+                  {
+                    "fieldName": "chamados_afetados"
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 36,
+            "width": 9,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "validacao-integridade-gold",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "1b680e92",
+                  "fields": [
+                    {
+                      "name": "total_registros",
+                      "expression": "`total_registros`"
+                    },
+                    {
+                      "name": "chamados_distintos",
+                      "expression": "`chamados_distintos`"
+                    },
+                    {
+                      "name": "registros_sem_id_chamado",
+                      "expression": "`registros_sem_id_chamado`"
+                    },
+                    {
+                      "name": "custos_negativos_na_gold",
+                      "expression": "`custos_negativos_na_gold`"
+                    },
+                    {
+                      "name": "notas_fora_da_escala",
+                      "expression": "`notas_fora_da_escala`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Validação de integridade da Gold",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "total_registros"
+                  },
+                  {
+                    "fieldName": "chamados_distintos"
+                  },
+                  {
+                    "fieldName": "registros_sem_id_chamado"
+                  },
+                  {
+                    "fieldName": "custos_negativos_na_gold"
+                  },
+                  {
+                    "fieldName": "notas_fora_da_escala"
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 30,
+            "width": 12,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "78a4be46",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Glossário de indicadores\n",
+                "\n",
+                "| Indicador | Definição / fórmula | Cuidados de interpretação |\n",
+                "| :--- | :--- | :--- |\n",
+                "| Total de chamados | Contagem de registros da fato, considerando um registro por `id_chamado`. | Depende da validação do grão da tabela Gold. |\n",
+                "| Custo total | Soma de `custo_total` nos chamados. | Custo ausente não deve ser tratado como custo zero. |\n",
+                "| Custo médio por chamado com custo | Soma de `custo_total` dividida pela quantidade de chamados com custo registrado. | Não representa necessariamente o custo operacional completo. |\n",
+                "| Taxa de resolução registrada | Chamados com `resolvido = TRUE` divididos pelos chamados com `resolvido` preenchido. | Resultado ausente não significa automaticamente que o chamado não foi resolvido. |\n",
+                "| Taxa de abandono humano | Chamados abandonados divididos pelos chamados avaliáveis dos canais humanos. | Não se aplica diretamente a URA e Chatbot. |\n",
+                "| Tempo médio de espera | Média de `tempo_espera_segundos` nos chamados em que o tempo foi registrado. | Na Gold, representa principalmente atendimentos humanos que começaram. |\n",
+                "| Tempo mediano de espera | Mediana de `tempo_espera_segundos` nos registros com espera preenchida. | Menos sensível a esperas excepcionalmente longas do que a média. |\n",
+                "| Satisfação média | Média de `nota_media` entre os chamados com nota válida registrada. | Sempre apresentar também a quantidade de avaliações válidas. |\n",
+                "| Taxa de recontato | Chamados identificados como recontato divididos pelos chamados avaliáveis para essa métrica. | Recontatos em até 1 hora podem pertencer à mesma interação. |\n",
+                "| Taxa de dados ausentes | Registros sem o campo analisado divididos pelo total de registros elegíveis. | Mede a ausência observável na Gold, não necessariamente todos os problemas da fonte original. |\n",
+                "\n",
+                "### Regras gerais\n",
+                "\n",
+                "- Exibir denominadores e quantidades de registros junto das taxas sempre que possível.\n",
+                "- Não interpretar correlações como relações causais.\n",
+                "- Não presumir economia garantida a partir de diferenças de custo observadas.\n",
+                "- Registrar as limitações decorrentes de dados ausentes e de transformações realizadas nas camadas Bronze, Silver e Gold.Glossário de indicadoresIndicador\tDefinição / fórmula\tCuidados de interpretação<br>Total de chamados\tContagem de registros da fato, considerando um registro por id\\_chamado.\tDepende da validação do grão da tabela Gold.<br>Custo total\tSoma de custo\\_total nos chamados.\tCusto ausente não deve ser tratado como custo zero.<br>Custo médio por chamado com custo\tSoma de custo\\_total dividida pela quantidade de chamados com custo registrado.\tNão representa necessariamente o custo operacional completo.<br>Taxa de resolução registrada\tChamados com resolvido = TRUE divididos pelos chamados com resolvido preenchido.\tResultado ausente não significa automaticamente que o chamado não foi resolvido.<br>Taxa de abandono humano\tChamados abandonados divididos pelos chamados avaliáveis dos canais humanos.\tNão se aplica diretamente a URA e Chatbot.<br>Tempo médio de espera\tMédia de tempo\\_espera\\_segundos nos chamados em que o tempo foi registrado.\tNa Gold, representa principalmente atendimentos humanos que começaram.<br>Tempo mediano de espera\tMediana de tempo\\_espera\\_segundos nos registros com espera preenchida.\tMenos sensível a esperas excepcionalmente longas do que a média.<br>Satisfação média\tMédia de nota\\_media entre os chamados com nota válida registrada.\tSempre apresentar também a quantidade de avaliações válidas.<br>Taxa de recontato\tChamados identificados como recontato divididos pelos chamados avaliáveis para essa métrica.\tRecontatos em até 1 hora podem pertencer à mesma interação.<br>Taxa de dados ausentes\tRegistros sem o campo analisado divididos pelo total de registros elegíveis.\tMede a ausência observável na Gold, não necessariamente todos os problemas da fonte original.Regras geraisExibir denominadores e quantidades de registros junto das taxas sempre que possível.<br><br>Não interpretar correlações como relações causais.<br><br>Não presumir economia garantida a partir de diferenças de custo observadas.<br><br>Registrar as limitações decorrentes de dados ausentes e de transformações realizadas nas camadas Bronze, Silver e Gold."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 42,
+            "width": 12,
+            "height": 10
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    },
+    "applyModeEnabled": false
+  }
+}
